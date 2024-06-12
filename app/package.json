@@ -9,5 +9,9 @@
   "main": "main.js",
   "private": true,
   "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21"
   }
 }

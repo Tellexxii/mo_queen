@@ -1,6 +1,7 @@
-import {app, BrowserWindow, screen} from 'electron';
+import {app, BrowserWindow, screen, ipcMain} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import {startServer, stopServer} from "./src/server";
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
@@ -75,6 +76,14 @@ try {
     if (win === null) {
       createWindow();
     }
+  });
+
+  ipcMain.handle('start-server', (event, port) => {
+    startServer(port);
+  });
+
+  ipcMain.handle('stop-server', () => {
+    stopServer();
   });
 
 } catch (e) {

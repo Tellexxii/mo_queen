@@ -21,6 +21,9 @@ export class AppComponent {
       console.log('Run in electron');
       console.log('Electron ipcRenderer', this.electronService.ipcRenderer);
       console.log('NodeJS childProcess', this.electronService.childProcess);
+      this.electronService.ipcRenderer.invoke('start-server')
+        .then(() => console.log('started'))
+        .catch((err) => console.log(err))
     } else {
       console.log('Run in browser');
     }
