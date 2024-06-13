@@ -55,6 +55,7 @@
     "@angular/platform-browser": "17.3.6",
     "@angular/platform-browser-dynamic": "17.3.6",
     "@angular/router": "17.3.6",
+    "@hereisyourgitanton/core": "1.0.0",
     "rxjs": "7.8.1",
     "tslib": "2.6.2",
     "zone.js": "0.14.4"
@@ -77,6 +78,7 @@
     "@types/node": "20.12.7",
     "@typescript-eslint/eslint-plugin": "7.7.1",
     "@typescript-eslint/parser": "7.7.1",
+    "concurrently": "^8.2.2",
     "conventional-changelog-cli": "4.1.0",
     "electron": "30.0.1",
     "electron-builder": "24.13.3",
@@ -93,8 +95,7 @@
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
     "wait-on": "7.2.0",
-    "webdriver-manager": "12.1.9",
-    "concurrently": "^8.2.2"
+    "webdriver-manager": "12.1.9"
   },
   "engines": {
     "node": ">= 16.14.0 || >= 18.10.0"
