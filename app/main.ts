@@ -1,11 +1,13 @@
 import {app, BrowserWindow, screen, ipcMain} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import {startServer, stopServer} from "./src/server";
+import {LocalServer, LocalServerConfig, startServer, stopServer} from "./src/server";
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
+
+let localServer: LocalServer | null = null;
 
 function createWindow(): BrowserWindow {
 
@@ -78,12 +80,20 @@ try {
     }
   });
 
-  ipcMain.handle('start-server', (event, port) => {
-    startServer(port);
+  ipcMain.handle('start-server', (event) => {
+    if (localServer) {
+      localServer.start();
+    }
   });
 
   ipcMain.handle('stop-server', () => {
-    stopServer();
+    if (localServer) {
+      localServer.stop();
+    }
+  });
+
+  ipcMain.handle('create-server', (event, config: LocalServerConfig) => {
+    localServer = new LocalServer(config);
   });
 
 } catch (e) {
