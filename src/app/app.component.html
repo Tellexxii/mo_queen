@@ -1,1 +1,24 @@
-<router-outlet></router-outlet>
+<div class="base-container">
+    <div class="controllers">
+        <div class="controllers-list">
+            <div class="controller">
+                <input type="text" placeholder="Give a name" (change)="onControllerNameChange($event)">
+            </div>
+        </div>
+    </div>
+    <div class="controllers-workspace">
+        <div class="controllers-panel">
+            <input type="number" (change)="onPortChange($event)" placeholder="Enter port number">
+
+            <div class="button-group">
+                <button (click)="start()">Start</button>
+                <button (click)="stop()">Stop</button>
+            </div>
+        </div>
+        <div class="controllers-schema">
+            <div class="json-schema-container">
+                <textarea (change)="onJSONChange($event)" class="json-input"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
