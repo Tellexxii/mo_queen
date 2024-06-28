@@ -11,7 +11,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppComponent } from './app.component';
-import { BaseModule } from "./base/base.module";
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -24,7 +23,6 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => new Transla
         HttpClientModule,
         CoreModule,
         SharedModule,
-        BaseModule,
         AppRoutingModule,
         TranslateModule.forRoot({
             loader: {

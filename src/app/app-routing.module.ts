@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { PageNotFoundComponent } from './shared/components';
-import { BaseRoutingModule } from "./base/base-routing.module";
 
 const routes: Routes = [
     {
@@ -18,7 +17,6 @@ const routes: Routes = [
 @NgModule({
     imports: [
         RouterModule.forRoot(routes, {}),
-        BaseRoutingModule
     ],
     exports: [RouterModule]
 })
