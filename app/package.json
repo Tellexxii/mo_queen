@@ -2,14 +2,15 @@
   "name": "angular-electron",
   "description": "Angular Electron sample",
   "author": {
-    "name": "Maxime GRIS",
-    "email": "maxime.gris@gmail.com"
+    "name": "",
+    "email": ""
   },
   "version": "14.0.1",
   "main": "main.js",
   "private": true,
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/express": "^4.17.21"

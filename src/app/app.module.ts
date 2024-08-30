@@ -11,6 +11,10 @@ import { AppRoutingModule } from './app-routing.module';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppComponent } from './app.component';
+import {LOCAL_SERVER_TOKEN} from "./tokens/local-server.token";
+import {ElectronService} from "./core/services";
+import {LocalServerExpressElectronService} from "./services/local-server-express-electron/local-service-express-electron.service";
+import {LocalServerWebMockService} from "./services/local-server-web-mock/local-server-web-mock.service";
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -32,7 +36,15 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => new Transla
             }
         })
     ],
-    providers: [],
+    providers: [
+        {
+            provide: LOCAL_SERVER_TOKEN,
+            useFactory: (electronService: ElectronService) => electronService.isElectron
+                ? new LocalServerExpressElectronService(electronService)
+                : new LocalServerWebMockService(),
+            deps: [ElectronService]
+        }
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {

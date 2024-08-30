@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
-import { ElectronService } from './core/services';
-import { TranslateService } from '@ngx-translate/core';
-import { APP_CONFIG } from '../environments/environment';
-import { LocalServerConfig } from "../../app/src/server";
+import {Component, inject, signal} from '@angular/core';
+import {map, merge, Observable, share, startWith, Subject, switchMap} from "rxjs";
+import {LOCAL_SERVER_TOKEN} from "./tokens/local-server.token";
+import {AddOrUpdateEndpointPayload, LocalServer} from "../../abstract/local-server";
+import {HttpStatusCode} from "@angular/common/http";
 
 @Component({
     selector: 'app-root',
@@ -10,53 +10,129 @@ import { LocalServerConfig } from "../../app/src/server";
     styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-    constructor(
-        private electronService: ElectronService,
-        private translate: TranslateService
-    ) {
-        this.translate.setDefaultLang('en');
-        console.log('APP_CONFIG', APP_CONFIG);
-        const config: LocalServerConfig = {port: 3001};
+    //#region Deps
+    private localServerService: LocalServer;
+    //TODO: change later with app settings
+    private readonly DEFAULT_PORT_NUMBER = 3000;
+    //#endregion
 
-        if (electronService.isElectron) {
-            console.log(process.env);
-            console.log('Run in electron');
-            console.log('Electron ipcRenderer', this.electronService.ipcRenderer);
-            console.log('NodeJS childProcess', this.electronService.childProcess);
-            this.electronService.ipcRenderer.invoke('create-server', config)
-                .then(() => console.log('started'))
-                .catch((err) => console.log(err))
-            this.electronService.ipcRenderer.invoke('start-server')
-                .then(() => console.log('started'))
-                .catch((err) => console.log(err))
-        } else {
-            console.log('Run in browser');
-        }
+    //#region UI Events
+    onAddNewEndpointClick$ = new Subject<AddOrUpdateEndpointPayload>();
+    onServerStartClick$ = new Subject<void>();
+    onServerStopClick$ = new Subject<void>();
+
+    $port = signal(this.DEFAULT_PORT_NUMBER);
+    $jsonChange = signal('');
+    $controllerName = signal('')
+
+    onSaveClick$ = new Subject<void>()
+    //#endregion
+
+    //#region Local Server Events
+    onNewEndpointAdded$:        ReturnType<LocalServer['addOrUpdateEndpoint']>;
+    onServerStarted$:           ReturnType<LocalServer['start']>;
+    onServerStopped$:           ReturnType<LocalServer['stop']>;
+    onAddOrUpdateEndpoint$:     ReturnType<LocalServer['addOrUpdateEndpoint']>;
+
+    //#endregion
+
+    isServerRunning$: Observable<boolean>;
+
+    constructor(
+    ) {
+        //#region Deps init
+        this.localServerService = inject(LOCAL_SERVER_TOKEN)
+
+        //#endregion
+
+        //#region Observables Init
+        this.onNewEndpointAdded$ = this.onAddNewEndpointClick$
+            .pipe(
+                switchMap((payload) => this.localServerService.addOrUpdateEndpoint(payload)),
+                share()
+            )
+
+        this.onServerStarted$ = this.onServerStartClick$.pipe(
+            switchMap(() => this.localServerService.start(this.$port())),
+            share()
+        )
+
+        this.onServerStopped$ = this.onServerStopClick$.pipe(
+            switchMap(() => this.localServerService.stop()),
+            share()
+        )
+
+        this.onAddOrUpdateEndpoint$ = this.onSaveClick$.pipe(
+            switchMap(() => this.localServerService.addOrUpdateEndpoint({
+                endpoint: this.$controllerName(),
+                config: {
+                    statusCode: HttpStatusCode.Ok,
+                    body: this.$jsonChange()
+                }
+            }))
+        )
+
+        this.isServerRunning$ = merge(
+            this.onServerStarted$.pipe(map((r) => r.isOk())),
+            this.onServerStopped$.pipe((map((r) => r.isOk()))),
+        ).pipe(
+            startWith(false)
+        )
+
+        //#endregion
+
+        //#region Observers Init
+
+        this.onNewEndpointAdded$.subscribe((result) => {
+            console.log('component onNewEndpointAdded$: ', result)
+        })
+
+        this.onServerStarted$.subscribe((result) => {
+            console.log('component onServerStarted$: ', result)
+        })
+
+        this.onServerStopped$.subscribe((result) => {
+            console.log('component onServerStopped$: ', result)
+        })
+
+        this.onAddOrUpdateEndpoint$.subscribe((result) => {
+            console.log('component onAddOrUpdateEndpoint$: ', result)
+        })
+
+        //#endregion
     }
 
     start() {
-        console.log('Start');
+        this.onServerStartClick$.next()
     }
 
     stop() {
-        console.log('Stop');
+        this.onServerStopClick$.next()
     }
 
     onPortChange(evt: Event) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        console.log('port', evt.target['value'])
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        this.$port.set(evt.target['value'])
     }
 
     onControllerNameChange(evt: Event) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        console.log('Controller', evt.target['value'])
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        this.$controllerName.set(evt.target['value'])
     }
 
     onJSONChange(evt: Event) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        console.log('JSON', evt.target['value'])
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        this.$jsonChange.set(evt.target['value'])
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSaveClick($event: MouseEvent) {
+        this.onSaveClick$.next()
     }
 }
