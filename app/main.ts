@@ -2,11 +2,13 @@ import {app, BrowserWindow, screen, ipcMain} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import {ExpressLocalServer} from "./src/express-server/server";
-import {AddOrUpdateEndpointPayload, LocalServerConfig} from "../abstract/local-server";
+import {AddOrUpdateEndpointPayload, LocalServerConfig} from "../core/abstract/local-server";
+import {IPCMainCommand} from "./src/ipc-renderer-commands";
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
-    serve = args.some(val => val === '--serve');
+    serve = args.some(val => val === '--serve'),
+    dev = args.some(val => val === '--dev')
 
 let localServer: ExpressLocalServer;
 
@@ -31,9 +33,19 @@ function createWindow(): BrowserWindow {
         const debug = require('electron-debug');
         debug();
 
+        //win.webContents.openDevTools();
+
         require('electron-reloader')(module);
         win.loadURL('http://localhost:4200');
     } else {
+        if (dev) {
+            const debug = require('electron-debug');
+            debug();
+
+            win.webContents.openDevTools();
+
+            require('electron-reloader')(module);
+        }
         // Path when running electron executable
         let pathIndex = './index.html';
 
@@ -53,6 +65,8 @@ function createWindow(): BrowserWindow {
         // when you should delete the corresponding element.
         win = null;
     });
+
+    localServer = new ExpressLocalServer();
 
     return win;
 }
@@ -81,29 +95,31 @@ try {
         }
     });
 
-    ipcMain.handle('create-server', (event, config: LocalServerConfig) => {
-        localServer = ExpressLocalServer.create(config)
-            .expect('Error while create ExpressLocalServer from config');
-    });
+    addIPCHandle('server_start', (event, port: [number]) => {
+        return localServer.start(port[0]);
+    })
 
-    ipcMain.handle('start-server', (event) => {
-        return localServer.start();
-    });
-
-    ipcMain.handle('stop-server', () => {
+    addIPCHandle('server_stop', () => {
         return localServer.stop();
-    });
+    })
 
-    ipcMain.handle('add-or-update-endpoint', (event, payload: [AddOrUpdateEndpointPayload]) => {
+    addIPCHandle('server_add-or-update-endpoint', (event, payload: [AddOrUpdateEndpointPayload]) => {
         console.log('ipcMain.handle ', payload)
         return localServer?.addOrUpdateEndpoint(payload[0].endpoint, payload[0].config)
-    });
+    })
+
+    ipcMain.handle('set-responseMap', (event, responseMap) => {
+        return localServer.setResponseMap(responseMap);
+    })
 
 } catch (e) {
     // Catch Error
     // throw e;
 }
 
+function addIPCHandle(channel: IPCMainCommand, listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any): void {
+    ipcMain.handle(channel, listener)
+}
 // export interface AddOrUpdateEndpointPayload {
 //
 // }

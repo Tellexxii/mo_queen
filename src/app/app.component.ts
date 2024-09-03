@@ -1,7 +1,7 @@
 import {Component, inject, signal} from '@angular/core';
 import {map, merge, Observable, share, startWith, Subject, switchMap} from "rxjs";
 import {LOCAL_SERVER_TOKEN} from "./tokens/local-server.token";
-import {AddOrUpdateEndpointPayload, LocalServer} from "../../abstract/local-server";
+import {AddOrUpdateEndpointPayload, LocalServer} from "../../core/abstract/local-server";
 import {HttpStatusCode} from "@angular/common/http";
 
 @Component({
@@ -67,7 +67,8 @@ export class AppComponent {
                 endpoint: this.$controllerName(),
                 config: {
                     statusCode: HttpStatusCode.Ok,
-                    body: this.$jsonChange()
+                    method: "GET",
+                    body: {kind: 'plain', data: this.$jsonChange()}
                 }
             }))
         )
