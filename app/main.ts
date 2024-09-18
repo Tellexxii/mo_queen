@@ -2,8 +2,10 @@ import {app, BrowserWindow, screen, ipcMain} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import {ExpressLocalServer} from "./src/express-server/server";
-import {AddOrUpdateEndpointPayload, LocalServerConfig} from "../core/abstract/local-server";
 import {IPCMainCommand} from "./src/ipc-renderer-commands";
+import {RequestHandler} from "../core/abstract/local-server";
+import {NodeRequestHandler} from "./src/node-request-handler";
+import {ResponseMap} from "../core/abstract/response-map";
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
@@ -103,13 +105,9 @@ try {
         return localServer.stop();
     })
 
-    addIPCHandle('server_add-or-update-endpoint', (event, payload: [AddOrUpdateEndpointPayload]) => {
-        console.log('ipcMain.handle ', payload)
-        return localServer?.addOrUpdateEndpoint(payload[0].endpoint, payload[0].config)
-    })
-
-    ipcMain.handle('set-responseMap', (event, responseMap) => {
-        return localServer.setResponseMap(responseMap);
+    addIPCHandle('server_set-response-map', (event, responseMap: [ResponseMap]) => {
+        let rh = new NodeRequestHandler(responseMap[0])
+        return localServer.setHandler(rh);
     })
 
 } catch (e) {

@@ -1,10 +1,9 @@
 import * as express from 'express';
 import {Express} from "express";
-import {HttpStatusCode} from "@angular/common/http";
-import {attempt, err, ok, Result} from "../../../core/functional/result";
+import {err, match, ok, Result} from "../../../core/functional/result";
 import {UnitType} from "../../../core/functional/types";
-import {EndpointConfig, ResponseMap} from "../../../core/abstract/response-map";
-import {EventEmitter} from "node:events";
+import {RequestHandler} from "../../../core/abstract/local-server";
+import {HTTPResponse} from "../../../core/abstract/common";
 
 const app = express();
 let server: any;
@@ -30,34 +29,35 @@ export function stopServer() {
 }
 
 export class ExpressLocalServer {
-    private responseMap!: ResponseMap
-    private isRunning = false;
-    app: Express;
-    server: any;
+    _responseHandler: RequestHandler = ({
+        handleRequest(req: Request): Result<HTTPResponse, string> {
+            return err('response handler is not set')
+        }
+    });
+    private _isRunning = false;
+    private app: Express;
+    private server: any;
 
 
     constructor() {
         this.app = express();
-
-        this.responseMap = {};
     }
 
-    setResponseMap(responseMap: ResponseMap): Result<UnitType, string> {
-        this.responseMap = responseMap;
-
-        return ok({})
+    setHandler(handler: RequestHandler) {
+        console.log('setHandler', handler);
+        this._responseHandler = handler;
     }
 
     start(port: number): Result<UnitType, string> {
-        if (this.isRunning) return err('Server already started')
-
-        if (!this.responseMap) return err('Response map is null or undefined')
+        if (this._isRunning) return err('Server already started')
 
         this.app.all('*', (req, res) => {
-            console.log(this.responseMap)
-            let key = req.originalUrl.substring(1)
+            // @ts-ignore
+            let result: Result<HTTPResponse, string> = this._responseHandler.handleRequest(req);
 
-            res.send(this.responseMap[key]?.body);
+            match(result,
+                (response) => res.status(response.code).send(response.body),
+                (err) => res.status(500).send(err))
         });
 
         this.server = this.app.listen(port, () => {
@@ -65,7 +65,7 @@ export class ExpressLocalServer {
             console.log(`Server is running at http://localhost:${port}`);
         });
 
-        this.isRunning = true;
+        this._isRunning = true;
 
         return ok({})
     }
@@ -77,39 +77,12 @@ export class ExpressLocalServer {
                 console.log('Server stopped');
             });
 
-            this.isRunning = false;
+            this._isRunning = false;
 
             return ok({});
         }
 
         return err('Server is null')
     }
-
-    addOrUpdateEndpoint(endpoint: string, config: EndpointConfig): Result<UnitType, string> {
-        console.log(endpoint, config)
-        this.responseMap[endpoint] = config;
-        return ok({})
-        // return attempt(() => this.responseMap[endpoint] = config)
-        //     .map(() => ({}))
-        //     .mapErr(() => 'Can not set')
-    }
-
-    removeEndpoint(endpoint: string) {
-        // return attempt(() => this.responseMap.delete(endpoint))
-        //     .map(() => ({}))
-        //     .mapErr(() => 'Can not remove')
-    }
-
-    // static create(config: LocalServerConfig): Result<ExpressLocalServer, string> {
-    //     if (config === null || config === undefined) {
-    //         return err('config is null or undefined')
-    //     }
-    //
-    //     if (config.responseMap === null || config.responseMap === undefined) {
-    //         return err('response map is null or undefined')
-    //     }
-    //
-    //     return ok(new ExpressLocalServer(config.responseMap, config.port || 3000))
-    // }
 
 }

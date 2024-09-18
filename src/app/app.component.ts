@@ -1,8 +1,8 @@
 import {Component, inject, signal} from '@angular/core';
 import {map, merge, Observable, share, startWith, Subject, switchMap} from "rxjs";
-import {LOCAL_SERVER_TOKEN} from "./tokens/local-server.token";
-import {AddOrUpdateEndpointPayload, LocalServer} from "../../core/abstract/local-server";
+import {AddOrUpdateEndpointPayload} from "../../core/abstract/local-server";
 import {HttpStatusCode} from "@angular/common/http";
+import {LocalServerFacadeService} from "./services/facade/local-server-facade.service";
 
 @Component({
     selector: 'app-root',
@@ -11,7 +11,7 @@ import {HttpStatusCode} from "@angular/common/http";
 })
 export class AppComponent {
     //#region Deps
-    private localServerService: LocalServer;
+    private localServerService: LocalServerFacadeService;
     //TODO: change later with app settings
     private readonly DEFAULT_PORT_NUMBER = 3000;
     //#endregion
@@ -29,10 +29,10 @@ export class AppComponent {
     //#endregion
 
     //#region Local Server Events
-    onNewEndpointAdded$:        ReturnType<LocalServer['addOrUpdateEndpoint']>;
-    onServerStarted$:           ReturnType<LocalServer['start']>;
-    onServerStopped$:           ReturnType<LocalServer['stop']>;
-    onAddOrUpdateEndpoint$:     ReturnType<LocalServer['addOrUpdateEndpoint']>;
+    onNewEndpointAdded$:        ReturnType<LocalServerFacadeService['addOrUpdateEndpoint']>;
+    onServerStarted$:           ReturnType<LocalServerFacadeService['start']>;
+    onServerStopped$:           ReturnType<LocalServerFacadeService['stop']>;
+    onAddOrUpdateEndpoint$:     ReturnType<LocalServerFacadeService['addOrUpdateEndpoint']>;
 
     //#endregion
 
@@ -41,7 +41,7 @@ export class AppComponent {
     constructor(
     ) {
         //#region Deps init
-        this.localServerService = inject(LOCAL_SERVER_TOKEN)
+        this.localServerService = inject(LocalServerFacadeService)
 
         //#endregion
 

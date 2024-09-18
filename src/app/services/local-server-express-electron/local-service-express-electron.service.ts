@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import {ElectronService} from "../../core/services";
 import {Observable, of} from "rxjs";
-import {AddOrUpdateEndpointPayload, LocalServer, LocalServerConfig} from "../../../../core/abstract/local-server";
-import {Result} from "../../../../core/functional/result";
-import {UnitType} from "../../../../core/functional/types";
+import {
+    LocalServer,
+    LocalServerConfig
+} from "../../../../core/abstract/local-server";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {Option} from "../../../../core/functional/option";
-import {ResponseMap} from "../../../../core/abstract/response-map";
 import {IPCMainCommand} from "../../../../app/src/ipc-renderer-commands";
+import {ResponseMap} from "../../../../core/abstract/response-map";
 
 
 @Injectable(
@@ -21,23 +21,12 @@ export class LocalServerExpressElectronService implements LocalServer {
             fromPromise(this.electronService.ipcRenderer.invoke(channel, args))
     }
 
-    setResponseMap(responseMap: ResponseMap) {
-        return this.ipcInvoke('server_set-responseMap', responseMap)
-    }
-
-    createEndpoint(): Observable<Result<UnitType, string>> {
-        throw new Error("Method not implemented.");
-    }
-
-    getResponseMap(): Observable<Option<ResponseMap>> {
-        throw new Error("Method not implemented.");
-    }
-    removeEndpoint(): Observable<Result<UnitType, string>> {
-        throw new Error("Method not implemented.");
-    }
-
     private create(config: LocalServerConfig) {
         return of(this.electronService.ipcRenderer.invoke('create-server', config))
+    }
+
+    setResponseMap(responseMap: ResponseMap) {
+        return this.ipcInvoke('server_set-response-map', responseMap)
     }
 
     start(port: number) {
@@ -46,9 +35,5 @@ export class LocalServerExpressElectronService implements LocalServer {
 
     stop() {
         return this.ipcInvoke('server_stop');
-    }
-
-    addOrUpdateEndpoint(payload: AddOrUpdateEndpointPayload) {
-        return this.ipcInvoke('server_add-or-update-endpoint', payload)
     }
 }

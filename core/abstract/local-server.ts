@@ -1,8 +1,8 @@
 import {Result} from "../functional/result";
 import {UnitType} from "../functional/types";
 import {Observable} from "rxjs";
-import Option from "../functional/option/Option";
 import {EndpointConfig, ResponseMap} from "./response-map";
+import {HTTPResponse} from "./common";
 
 
 export interface LocalServer {
@@ -10,15 +10,7 @@ export interface LocalServer {
 
     stop(): Observable<Result<UnitType, string>>;
 
-    createEndpoint(): Observable<Result<UnitType, string>>
-
-    addOrUpdateEndpoint(payload: AddOrUpdateEndpointPayload): Observable<Result<UnitType, string>>;
-
-    removeEndpoint(endpoint: string): Observable<Result<UnitType, string>>;
-
     setResponseMap(responseMap: ResponseMap): Observable<Result<UnitType, string>>
-
-    getResponseMap(): Observable<Option<ResponseMap>>
 }
 
 export type AddOrUpdateEndpointPayload = {
@@ -29,4 +21,8 @@ export type AddOrUpdateEndpointPayload = {
 export interface LocalServerConfig {
     port: number;
     responseMap: ResponseMap;
+}
+
+export interface RequestHandler {
+    handleRequest(req: Request): Result<HTTPResponse, string>;
 }

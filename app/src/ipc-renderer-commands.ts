@@ -3,9 +3,7 @@ import {ExpressLocalServer} from "./express-server/server";
 export type IPCServerCommand =
     'start'                     |
     'stop'                      |
-    'add-or-update-endpoint'    |
-    'remove-endpoint'           |
-    'set-responseMap'
+    'set-response-map'
 
 export type IPC_FSCommand = 'open'
 
