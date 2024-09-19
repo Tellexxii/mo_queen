@@ -1,9 +1,8 @@
 import {Injectable} from "@angular/core";
 import {ElectronService} from "../../core/services";
-import {Observable, of} from "rxjs";
+import {Observable} from "rxjs";
 import {
-    LocalServer,
-    LocalServerConfig
+    LocalServer
 } from "../../../../core/abstract/local-server";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {IPCMainCommand} from "../../../../app/src/ipc-renderer-commands";
@@ -19,10 +18,6 @@ export class LocalServerExpressElectronService implements LocalServer {
     constructor(private readonly electronService: ElectronService) {
         this.ipcInvoke = (channel, ...args) =>
             fromPromise(this.electronService.ipcRenderer.invoke(channel, args))
-    }
-
-    private create(config: LocalServerConfig) {
-        return of(this.electronService.ipcRenderer.invoke('create-server', config))
     }
 
     setResponseMap(responseMap: ResponseMap) {

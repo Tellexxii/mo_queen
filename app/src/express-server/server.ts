@@ -29,7 +29,7 @@ export function stopServer() {
 }
 
 export class ExpressLocalServer {
-    _responseHandler: RequestHandler = ({
+    _requestHandler: RequestHandler = ({
         handleRequest(req: Request): Result<HTTPResponse, string> {
             return err('response handler is not set')
         }
@@ -39,13 +39,12 @@ export class ExpressLocalServer {
     private server: any;
 
 
-    constructor() {
-        this.app = express();
-    }
+    constructor(requestHandler: RequestHandler) {
+        if (requestHandler !== null && requestHandler !== undefined) {
+            this._requestHandler = requestHandler;
+        }
 
-    setHandler(handler: RequestHandler) {
-        console.log('setHandler', handler);
-        this._responseHandler = handler;
+        this.app = express();
     }
 
     start(port: number): Result<UnitType, string> {
@@ -53,7 +52,7 @@ export class ExpressLocalServer {
 
         this.app.all('*', (req, res) => {
             // @ts-ignore
-            let result: Result<HTTPResponse, string> = this._responseHandler.handleRequest(req);
+            let result: Result<HTTPResponse, string> = this._requestHandler.handleRequest(req);
 
             match(result,
                 (response) => res.status(response.code).send(response.body),

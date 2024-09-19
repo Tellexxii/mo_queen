@@ -3,8 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {ExpressLocalServer} from "./src/express-server/server";
 import {IPCMainCommand} from "./src/ipc-renderer-commands";
-import {RequestHandler} from "../core/abstract/local-server";
-import {NodeRequestHandler} from "./src/node-request-handler";
+import {NodeRequestHandler} from "./src/request-handler/node-request-handler";
 import {ResponseMap} from "../core/abstract/response-map";
 
 let win: BrowserWindow | null = null;
@@ -12,6 +11,7 @@ const args = process.argv.slice(1),
     serve = args.some(val => val === '--serve'),
     dev = args.some(val => val === '--dev')
 
+let requestHandler: NodeRequestHandler;
 let localServer: ExpressLocalServer;
 
 function createWindow(): BrowserWindow {
@@ -68,7 +68,8 @@ function createWindow(): BrowserWindow {
         win = null;
     });
 
-    localServer = new ExpressLocalServer();
+    requestHandler = new NodeRequestHandler({});
+    localServer = new ExpressLocalServer(requestHandler);
 
     return win;
 }
@@ -106,8 +107,7 @@ try {
     })
 
     addIPCHandle('server_set-response-map', (event, responseMap: [ResponseMap]) => {
-        let rh = new NodeRequestHandler(responseMap[0])
-        return localServer.setHandler(rh);
+        requestHandler.setResponseMap(responseMap[0])
     })
 
 } catch (e) {
@@ -118,6 +118,3 @@ try {
 function addIPCHandle(channel: IPCMainCommand, listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any): void {
     ipcMain.handle(channel, listener)
 }
-// export interface AddOrUpdateEndpointPayload {
-//
-// }
